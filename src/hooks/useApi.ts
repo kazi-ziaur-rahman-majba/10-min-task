@@ -1,5 +1,5 @@
 import { useMutation, UseMutationResult, useQuery, useQueryClient } from "@tanstack/react-query";
-import { deleteData, getData, patchData, postData, postFormData, patchFormData } from "../services/apiService";
+import { deleteData, getData, patchData, postData, postFormData, patchFormData } from "../services/api-service";
 import { showErrorToast, showSuccessToast } from "../utils/toast-utils";
 
 interface ApiResponse<T> {
