@@ -3,24 +3,27 @@ import NavBar from "@/components/layout/navbar/Navbar";
 import { useAPI } from "@/hooks/useApi";
 import { useEffect, useState } from "react";
 import apiConfig from "../config/api.json";
+import CourseChecklist from "@/components/CourseChecklist"; // Make sure you import the CourseChecklist component
 
 export default function Home() {
   const { fetchData } = useAPI();
-	const [response, setResponse] = useState<any>(null);
+  const [response, setResponse] = useState<any>(null);
 
-
-	useEffect(() => {
-		const fetchHomePageData = async () => {
-			const response = await fetchData({ apiUrl: `${apiConfig.site.homePageUrl}` });
-			setResponse(response);
+  useEffect(() => {
+    const fetchHomePageData = async () => {
+      const response = await fetchData({
+        apiUrl: `${apiConfig.site.homePageUrl}`,
+      });
+      setResponse(response);
       console.log("Home Page Data:", response);
-		};
-		fetchHomePageData();
-	}, []);
+    };
+    fetchHomePageData();
+  }, []);
 
   return (
     <div className="text-red-500 text-2xl">
       <NavBar />
+        <CourseChecklist checklist={response.checklist} />
 
     </div>
   );
