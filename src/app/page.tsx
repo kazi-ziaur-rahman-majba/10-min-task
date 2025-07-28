@@ -6,37 +6,9 @@ import apiConfig from "../config/api.json";
 import Banner from "@/components/Banner";
 import Course from "@/components/course/index";
 
-interface MediaItem {
-  thumbnail_url?: string;
-  resource_value?: string;
-}
-
-interface ChecklistItem {
-  text: string;
-}
-
-interface CTA {
-  name: string;
-  value: string;
-}
-
-interface Section {
-  id: string;
-  title: string;
-}
-
-interface HomeResponse {
-  title: string;
-  description: string;
-  media: MediaItem[];
-  checklist: ChecklistItem[];
-  cta_text: CTA;
-  sections: Section[];
-}
-
 export default function Home() {
   const { fetchData } = useAPI();
-  const [response, setResponse] = useState<HomeResponse | null>(null);
+  const [response, setResponse] = useState<any>(null);
 
   useEffect(() => {
     const fetchHomePageData = async () => {
@@ -56,13 +28,7 @@ export default function Home() {
   return (
     <div className="">
       <NavBar />
-      <Banner
-        title={response.title}
-        description={response.description}
-        media={response.media}
-        checklist={response.checklist}
-        cta_text={response.cta_text}
-      />
+      <Banner title={response.title} description={response.description} media={response.media} checklist={response.checklist} cta_text={response.cta_text} />
       <Course sections={response.sections} />
     </div>
   );
