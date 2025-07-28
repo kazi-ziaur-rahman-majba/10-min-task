@@ -3,7 +3,8 @@ import NavBar from "@/components/layout/navbar/Navbar";
 import { useAPI } from "@/hooks/useApi";
 import { useEffect, useState } from "react";
 import apiConfig from "../config/api.json";
-import CourseChecklist from "@/components/CourseChecklist"; // Make sure you import the CourseChecklist component
+import Banner from "@/components/Banner";
+import CourseChecklist from "@/components/CourseChecklist";
 
 export default function Home() {
   const { fetchData } = useAPI();
@@ -20,11 +21,14 @@ export default function Home() {
     fetchHomePageData();
   }, []);
 
-  return (
-    <div className="text-red-500 text-2xl">
-      <NavBar />
-        <CourseChecklist checklist={response.checklist} />
+  if (!response) {
+    return <div>Loading...</div>;
+  }
 
+  return (
+    <div className="">
+      <NavBar />
+      <Banner title={response.title} description={response.description} media={response.media} checklist={response.checklist} cta_text={response.cta_text} />
     </div>
   );
 }
