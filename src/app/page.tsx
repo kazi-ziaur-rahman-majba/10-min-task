@@ -4,7 +4,7 @@ import { useAPI } from "@/hooks/useApi";
 import { useEffect, useState } from "react";
 import apiConfig from "../config/api.json";
 import Banner from "@/components/Banner";
-import Course from "@/components/Course";
+import Course from "@/components/course/index";
 
 export default function Home() {
   const { fetchData } = useAPI();
