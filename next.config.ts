@@ -1,9 +1,11 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
-    domains: ["cdn.10minuteschool.com"],
+    domains: [
+      's3.ap-southeast-1.amazonaws.com',
+      'cdn.10minuteschool.com'
+    ],
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

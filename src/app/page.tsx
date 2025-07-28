@@ -4,7 +4,7 @@ import { useAPI } from "@/hooks/useApi";
 import { useEffect, useState } from "react";
 import apiConfig from "../config/api.json";
 import Banner from "@/components/Banner";
-import CourseChecklist from "@/components/CourseChecklist";
+import Course from "@/components/Course";
 
 export default function Home() {
   const { fetchData } = useAPI();
@@ -29,6 +29,7 @@ export default function Home() {
     <div className="">
       <NavBar />
       <Banner title={response.title} description={response.description} media={response.media} checklist={response.checklist} cta_text={response.cta_text} />
+      <Course sections={response.sections} />
     </div>
   );
 }
