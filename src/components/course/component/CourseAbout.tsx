@@ -2,14 +2,14 @@
 import React from "react";
 
 interface AboutItem {
-  id?: string;
-  title?: string;
-  description?: string;
+    id?: string;
+    title?: string;
+    description?: string;
 }
 
 interface Props {
-  values: AboutItem[];
-  sectionKey: string;
+    values: AboutItem[];
+    sectionKey: string;
 }
 
 const CourseAbout: React.FC<Props> = ({ values, sectionKey }) => {
