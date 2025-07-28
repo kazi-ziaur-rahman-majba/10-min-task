@@ -1,15 +1,8 @@
 "use client";
-
-import React from "react";
-import { 
-  FaCheckCircle, 
-  FaStar,
-  FaQuoteLeft
-} from "react-icons/fa";
-import { 
-  FiDownload, 
-  FiArrowRight
-} from "react-icons/fi";
+import React, { useEffect, useRef } from "react";
+import { FaCheckCircle, FaStar, FaQuoteLeft } from "react-icons/fa";
+import { FiDownload } from "react-icons/fi";
+import Image from "next/image";
 
 interface ValueItem {
   id?: string;
@@ -43,74 +36,64 @@ interface CourseProps {
 }
 
 const Course: React.FC<CourseProps> = ({ sections }) => {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  // Auto-scroll testimonial slider
+  useEffect(() => {
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+
+    const scrollInterval = setInterval(() => {
+      scrollContainer.scrollBy({ left: 350, behavior: "smooth" });
+    }, 3000);
+
+    return () => clearInterval(scrollInterval);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <div className="max-w-7xl mx-auto px-4 py-12 space-y-20">
         {sections.map((section, index) => {
+          const keyPrefix = `${section.type}-${index}`;
           switch (section.type) {
             case "offers":
-              return section.values.map((offer) => (
-                <div
-                  key={offer.id}
-                  className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 p-1 shadow-2xl transform hover:scale-105 transition-all duration-300 max-w-4xl mx-auto"
-                >
-                  <div className="bg-white rounded-3xl p-8 text-center relative">
-                    
-                    <div className="mt-6">
-                      <p className="text-3xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent leading-relaxed">
+              return (
+                <div key={keyPrefix} className="space-y-4">
+                  {section.values.map((offer, i) => (
+                    <div
+                      key={offer.id || `${keyPrefix}-${i}`}
+                      className="bg-red-100 p-6 rounded-lg text-center"
+                    >
+                      <p className="text-red-600 text-lg font-semibold">
                         {offer.text}
                       </p>
                     </div>
-                    
-                  </div>
+                  ))}
                 </div>
-              ));
+              );
 
             case "instructors":
               return (
-                <div key={index} className="text-center">
-                  <div className="mb-12">
-                    <h2 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
-                      {section.name}
-                    </h2>
-                    <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                      {section.description || "Learn from industry experts with years of experience"}
-                    </p>
-                  </div>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {section.values.map((inst, idx) => (
-                      <div key={inst.name || idx} className="group">
-                        <div className="bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-500 border border-gray-100">
-                          <div className="relative mb-6">
-                            <div className="w-32 h-32 mx-auto rounded-full overflow-hidden bg-gradient-to-r from-indigo-500 to-purple-500 p-1">
-                              {inst.image ? (
-                                <img
-                                  src={inst.image}
-                                  alt={inst.name || "Instructor"}
-                                  className="w-full h-full rounded-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full rounded-full bg-gray-200 flex items-center justify-center">
-                                  <span className="text-4xl font-bold text-indigo-500">
-                                    {inst.name?.charAt(0) || "I"}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                            {inst.name}
-                          </h3>
-                          <p className="text-indigo-600 font-semibold mb-4">
-                            {inst.short_description}
-                          </p>
-                          <div 
-                            className="text-gray-600 leading-relaxed"
-                            dangerouslySetInnerHTML={{
-                              __html: inst.description ?? "Expert instructor with extensive experience in the field.",
-                            }}
-                          />
-                        </div>
+                <div key={keyPrefix} className="text-center">
+                  <h2 className="text-2xl font-bold mb-4">{section.name}</h2>
+                  <div className="flex justify-center flex-wrap gap-6">
+                    {section.values.map((inst, i) => (
+                      <div key={inst.id || `${keyPrefix}-${i}`} className="max-w-md">
+                        <Image
+                          src={inst.image ?? ""}
+                          alt={inst.name ?? ""}
+                          width={300}
+                          height={300}
+                          className="rounded-full mx-auto"
+                        />
+                        <h3 className="text-lg font-semibold mt-2">{inst.name}</h3>
+                        <p className="text-sm text-gray-600">{inst.short_description}</p>
+                        <div
+                          className="mt-2 text-sm"
+                          dangerouslySetInnerHTML={{
+                            __html: inst.description ?? "",
+                          }}
+                        ></div>
                       </div>
                     ))}
                   </div>
@@ -119,28 +102,31 @@ const Course: React.FC<CourseProps> = ({ sections }) => {
 
             case "features":
               return (
-                <div key={index}>
+                <div key={keyPrefix}>
                   <div className="text-center mb-12">
                     <h2 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4">
                       {section.name}
                     </h2>
                     <p className="text-xl text-gray-600">
-                      {section.description || "Everything you need to succeed in your learning journey"}
+                      {section.description ||
+                        "Everything you need to succeed in your learning journey"}
                     </p>
                   </div>
                   <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {section.values.map((feature, idx) => (
                       <div
-                        key={feature.id || idx}
+                        key={feature.id || `${keyPrefix}-${idx}`}
                         className="group relative overflow-hidden"
                       >
                         <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 h-full">
                           <div className="mb-6">
                             {feature.icon ? (
-                              <img
+                              <Image
                                 src={feature.icon}
                                 alt="Feature Icon"
-                                className="w-16 h-16 mb-4 mx-auto"
+                                width={64}
+                                height={64}
+                                className="mb-4 mx-auto"
                               />
                             ) : (
                               <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
@@ -154,7 +140,9 @@ const Course: React.FC<CourseProps> = ({ sections }) => {
                             {feature.title}
                           </h3>
                           <p className="text-gray-600 leading-relaxed">
-                            {feature.subtitle || feature.description || "Comprehensive feature designed to enhance your learning experience."}
+                            {feature.subtitle ||
+                              feature.description ||
+                              "Comprehensive feature designed to enhance your learning experience."}
                           </p>
                         </div>
                       </div>
@@ -165,111 +153,28 @@ const Course: React.FC<CourseProps> = ({ sections }) => {
 
             case "pointers":
               return (
-                <div key={index} className="bg-white rounded-3xl p-12 shadow-xl border border-gray-100">
+                <div
+                  key={keyPrefix}
+                  className="bg-white rounded-3xl p-12 shadow-xl border border-gray-100"
+                >
                   <div className="text-center mb-12">
                     <h2 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-4">
                       {section.name}
                     </h2>
                     <p className="text-xl text-gray-600">
-                      {section.description || "Key benefits you'll get from this course"}
+                      {section.description ||
+                        "Key benefits you'll get from this course"}
                     </p>
                   </div>
                   <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
                     {section.values.map((item, idx) => (
-                      <div key={item.id || idx} className="flex items-start gap-4 p-4 rounded-xl hover:bg-green-50 transition-colors duration-300 group">
-                        <div className="flex-shrink-0">
-                          <FaCheckCircle className="w-6 h-6 text-green-500 mt-1" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-gray-700 font-medium leading-relaxed group-hover:text-gray-900 transition-colors duration-300">
-                            {item.text}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-
-            case "group_join_engagement":
-              return section.values.map((v) => (
-                <div
-                  key={v.id}
-                  className="relative overflow-hidden rounded-3xl shadow-2xl transform hover:scale-105 transition-all duration-500"
-                >
-                  {v.background?.image ? (
-                    <div 
-                      className="absolute inset-0 bg-cover bg-center"
-                      style={{ backgroundImage: `url(${v.background.image})` }}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700"></div>
-                  )}
-                  <div className="relative z-10 p-12 text-white text-center">
-                    <div className="backdrop-blur-sm bg-black/50 p-8 rounded-2xl">
-                      <h2 className="text-4xl font-bold mb-4">{v.title}</h2>
-                      <p className="text-xl opacity-90 max-w-2xl mx-auto leading-relaxed mb-8">
-                        {v.description}
-                      </p>
-                      <button 
-                        className="inline-flex items-center gap-3 bg-white text-purple-600 font-bold px-8 py-4 rounded-full hover:bg-gray-100 transform hover:-translate-y-1 transition-all duration-300 shadow-lg"
-                      >
-                        <FiDownload className="w-5 h-5" /> 
-                        {v.cta?.text || "Join Now"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ));
-
-            case "testimonials":
-              return (
-                <div key={index}>
-                  <div className="text-center mb-12">
-                    <h2 className="text-5xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent mb-4">
-                      {section.name}
-                    </h2>
-                    <p className="text-xl text-gray-600">
-                      {section.description || "What our students say about their experience"}
-                    </p>
-                  </div>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {section.values.map((t, idx) => (
                       <div
-                        key={t.id || idx}
-                        className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 relative overflow-hidden group"
+                        key={item.id || `${keyPrefix}-${idx}`}
+                        className="flex items-start gap-4 p-4 rounded-xl hover:bg-green-50 transition-colors duration-300 group"
                       >
-                        <div className="absolute top-4 right-4 opacity-20 group-hover:opacity-30 transition-opacity duration-300">
-                          <FaQuoteLeft className="w-8 h-8 text-yellow-500" />
-                        </div>
-                        <div className="mb-6">
-                          <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-r from-yellow-400 to-orange-500 p-1">
-                            {t.profile_image ? (
-                              <img
-                                src={t.profile_image}
-                                alt={t.name || "Student"}
-                                className="w-full h-full rounded-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full rounded-full bg-gray-200 flex items-center justify-center">
-                                <span className="text-2xl font-bold text-gray-600">
-                                  {t.name?.charAt(0) || "U"}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="mb-4">
-                          <div className="flex items-center gap-1 mb-2">
-                            {[...Array(5)].map((_, i) => (
-                              <FaStar key={i} className="w-4 h-4 text-yellow-400" />
-                            ))}
-                          </div>
-                          <h3 className="font-bold text-xl text-gray-900 mb-1">{t.name}</h3>
-                          <p className="text-sm text-gray-500 font-medium">Verified Student</p>
-                        </div>
-                        <p className="text-gray-700 leading-relaxed italic">
-                          "{t.testimonial}"
+                        <FaCheckCircle className="w-6 h-6 text-green-500 mt-1" />
+                        <p className="text-gray-700 font-medium leading-relaxed group-hover:text-gray-900 transition-colors duration-300">
+                          {item.text}
                         </p>
                       </div>
                     ))}
@@ -277,22 +182,116 @@ const Course: React.FC<CourseProps> = ({ sections }) => {
                 </div>
               );
 
+            case "group_join_engagement":
+              return (
+                <div key={keyPrefix} className="space-y-4">
+                  {section.values.map((v, i) => (
+                    <div
+                      key={v.id || `${keyPrefix}-${i}`}
+                      className="relative rounded-xl overflow-hidden text-white p-6"
+                      style={{ backgroundImage: `url(${v.background?.image})`, backgroundSize: "cover" }}
+                    >
+                      <div className="backdrop-blur-sm bg-black/50 p-6 rounded-xl">
+                        <h2 className="text-2xl font-bold mb-2">{v.title}</h2>
+                        <p className="mb-4">{v.description}</p>
+                        <a
+                          href={v.cta?.clicked_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 bg-white text-black font-medium px-4 py-2 rounded hover:bg-gray-100"
+                        >
+                          <FiDownload /> {v.cta?.text}
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+
+            case "testimonials":
+              return (
+                <div key={keyPrefix} className="py-16 bg-gradient-to-br from-white to-orange-50">
+                  <div className="text-center mb-12 px-4">
+                    <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent mb-4">
+                      {section.name}
+                    </h2>
+                    <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
+                      {section.description ||
+                        "What our students say about their experience"}
+                    </p>
+                  </div>
+
+                  <div className="overflow-x-auto scrollbar-hide">
+                    <div
+                      ref={scrollRef}
+                      className="flex space-x-6 px-6 md:px-12 snap-x snap-mandatory overflow-x-scroll pb-4 scroll-smooth"
+                    >
+                      {section.values.map((t, idx) => (
+                        <div
+                          key={t.id || `${keyPrefix}-${idx}`}
+                          className="min-w-[280px] sm:min-w-[300px] md:min-w-[320px] max-w-[90%] bg-white bg-opacity-70 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-orange-100 transition-all duration-500 hover:shadow-2xl transform hover:-translate-y-1 snap-start relative group"
+                        >
+                          <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-30 transition-opacity duration-300">
+                            <FaQuoteLeft className="w-6 h-6 text-yellow-400" />
+                          </div>
+
+                          <div className="flex flex-col items-center mb-4">
+                            <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-r from-yellow-400 to-orange-400 p-1">
+                              {t.profile_image ? (
+                                <Image
+                                  src={t.profile_image}
+                                  alt={t.name || "Student"}
+                                  className="w-full h-full rounded-full object-cover"
+                                  width={64}
+                                  height={64}
+                                />
+                              ) : (
+                                <div className="w-full h-full rounded-full bg-gray-200 flex items-center justify-center">
+                                  <span className="text-xl font-bold text-gray-600">
+                                    {t.name?.charAt(0) || "U"}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 mt-3">
+                              {[...Array(5)].map((_, i) => (
+                                <FaStar key={i} className="w-4 h-4 text-yellow-400" />
+                              ))}
+                            </div>
+                          </div>
+
+                          <h3 className="font-semibold text-lg text-center text-gray-800">{t.name}</h3>
+                          <p className="text-sm text-gray-500 text-center mb-4">Verified Student</p>
+                          <p className="text-gray-700 text-sm leading-relaxed italic text-center line-clamp-5">
+                            {t.testimonial}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+
             case "about":
               return (
-                <div key={index} className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-3xl p-12">
+                <div key={keyPrefix} className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-3xl p-12">
                   <div className="max-w-4xl mx-auto">
                     {section.values.map((item, idx) => (
-                      <div key={item.id || idx} className="mb-12 last:mb-0">
+                      <div key={item.id || `${keyPrefix}-${idx}`} className="mb-12 last:mb-0">
                         <div className="text-center mb-8">
                           <div
                             className="text-3xl font-bold text-gray-900 mb-4 leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: item.title ?? "Course Information" }}
+                            dangerouslySetInnerHTML={{
+                              __html: item.title ?? "Course Information",
+                            }}
                           />
                         </div>
                         <div
                           className="prose prose-lg prose-gray max-w-none text-center leading-relaxed text-gray-700"
                           dangerouslySetInnerHTML={{
-                            __html: item.description ?? "Comprehensive course content designed to help you achieve your goals.",
+                            __html:
+                              item.description ??
+                              "Comprehensive course content designed to help you achieve your goals.",
                           }}
                         />
                       </div>
