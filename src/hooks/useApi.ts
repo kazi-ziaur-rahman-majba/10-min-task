@@ -1,9 +1,11 @@
+// ✅ Your updated and ESLint-safe useAPI hook
+
 import { useEffect, useState } from "react";
 import { useMutation, UseMutationResult, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteData, getData, patchData, postData, postFormData, patchFormData } from "../services/api-service";
 import { showErrorToast, showSuccessToast } from "../utils/toast-utils";
 
-// ✅ Hydration-safe token hook
+// ✅ Token hook
 const useClientToken = (): string => {
   const [token, setToken] = useState("");
   useEffect(() => {
@@ -46,7 +48,7 @@ interface MutationProps {
 }
 
 interface HandleMutationProps<T> {
-  mutation: UseMutationResult<T, ErrorResponse, { url: string; body: Record<string, unknown> }>;
+  mutation: UseMutationResult<T, ErrorResponse, MutationProps>;
   url: string;
   body: Record<string, unknown>;
   invalidateQueryKey?: string[];
@@ -94,13 +96,17 @@ const handleErrorMessage = (error: unknown) => {
     };
     const errorMessage = errorObj.response?.data?.message || errorObj.data?.message || errorObj.message;
     if (errorMessage) {
-      Array.isArray(errorMessage) ? errorMessage.forEach(showErrorToast) : showErrorToast(errorMessage);
+      if (Array.isArray(errorMessage)) {
+        errorMessage.forEach(showErrorToast);
+      } else {
+        showErrorToast(errorMessage);
+      }
     }
   }
 };
 
 export const useAPI = () => {
-  const token = useClientToken(); // ✅ safe on client only
+  const token = useClientToken();
   const queryClient = useQueryClient();
 
   const getMutation = useMutation({
@@ -111,12 +117,12 @@ export const useAPI = () => {
     mutationFn: ({ url }: MutationProps) => deleteData({ url, token })
   });
 
-  const postMutation = useMutation<unknown, ErrorResponse, { url: string; body: Record<string, unknown> }>({
-    mutationFn: ({ url, body }) => postData({ url, body, token })
+  const postMutation = useMutation<unknown, ErrorResponse, MutationProps>({
+    mutationFn: ({ url, body }) => postData({ url, body: body ?? {}, token })
   });
 
   const patchMutation = useMutation({
-    mutationFn: ({ url, body }: MutationProps) => patchData({ url, body: body as Record<string, unknown>, token })
+    mutationFn: ({ url, body }: MutationProps) => patchData({ url, body: body ?? {}, token })
   });
 
   const postFormMutation = useMutation({
@@ -124,8 +130,13 @@ export const useAPI = () => {
       if (!body || typeof body !== "object") throw new Error("Invalid request body.");
       const formData = new FormData();
       for (const [key, value] of Object.entries(body)) {
-        if (Array.isArray(value)) value.forEach((item) => formData.append(key, item));
-        else formData.append(key, value as any);
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            formData.append(key, item as string | Blob);
+          }
+        } else {
+          formData.append(key, value as string | Blob);
+        }
       }
       return postFormData({ url, token, body: formData });
     }
@@ -136,19 +147,24 @@ export const useAPI = () => {
       if (!body || typeof body !== "object") throw new Error("Invalid request body.");
       const formData = new FormData();
       for (const [key, value] of Object.entries(body)) {
-        if (Array.isArray(value)) value.forEach((item) => formData.append(key, item));
-        else formData.append(key, value as any);
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            formData.append(key, item as string | Blob);
+          }
+        } else {
+          formData.append(key, value as string | Blob);
+        }
       }
       return patchFormData({ url, token, body: formData });
     }
   });
 
-  const fetchData = async ({ apiUrl }: FetchDataProps) => {
+  const fetchData = async <T>({ apiUrl }: FetchDataProps): Promise<T | undefined> => {
     try {
-      const response = await getMutation.mutateAsync({ url: apiUrl }) as ApiResponse<any>;
+      const response = (await getMutation.mutateAsync({ url: apiUrl })) as ApiResponse<T>;
       return response.data;
-    } catch (e: any) {
-      showErrorToast(e?.response?.data?.message || e?.data?.message || e?.message);
+    } catch (e: unknown) {
+      handleErrorMessage(e);
     }
   };
 
@@ -175,40 +191,42 @@ export const useAPI = () => {
       refetchOnMount,
       staleTime,
       refetchInterval,
-      enabled: enabled && !!token // ✅ wait for token
+      enabled: enabled && !!token
     });
 
     let data: T[] = [];
     let totalItems = 0;
     let pageCount = 1;
 
-    if (response?.statusCode === 200 && response?.data) {
+    if ("statusCode" in (response || {}) && response?.statusCode === 200 && "data" in response) {
       const { data: apiData, total, pageCount: apiPageCount } = response.data;
-      data = apiData as T[];
+      data = apiData;
       totalItems = total ?? 0;
       pageCount = apiPageCount ?? 1;
     } else if (error) {
       if (showToast) {
-        showErrorToast(error?.message);
+        showErrorToast(error.message);
       } else {
-        console.error(error?.message);
+        console.error(error.message);
       }
     }
 
     return { data, totalItems, pageCount, response: response?.data, isLoading, isFetching, ...queryProps };
   };
 
-  const validateFormData = ({
-    body,
-    requiredFields
-  }: ValidationProps): boolean => {
+  const validateFormData = ({ body, requiredFields }: ValidationProps): boolean => {
     if (requiredFields?.length > 0) {
       for (const { key: fieldKey, value: fieldValue, label: fieldLabel } of requiredFields) {
         const fieldName = fieldValue || fieldKey;
         const fieldVariable = body[fieldKey];
 
-        if (!fieldVariable || (typeof fieldVariable === 'string' && fieldVariable.length === 0) || (Array.isArray(fieldVariable) && fieldVariable.length === 0)) {
-          const action = fieldLabel === "image" ? "upload" : fieldLabel === "dropdown" ? "select" : "enter";
+        if (
+          !fieldVariable ||
+          (typeof fieldVariable === "string" && fieldVariable.length === 0) ||
+          (Array.isArray(fieldVariable) && fieldVariable.length === 0)
+        ) {
+          const action =
+            fieldLabel === "image" ? "upload" : fieldLabel === "dropdown" ? "select" : "enter";
           showErrorToast(`Please ${action} ${fieldName}.`);
           return false;
         }
@@ -228,7 +246,7 @@ export const useAPI = () => {
   }: HandleMutationProps<T>) => {
     try {
       if (validateFormData({ body, requiredFields })) {
-        const response = await mutation.mutateAsync({ url, body }) as ApiResponse<T>;
+        const response = (await mutation.mutateAsync({ url, body })) as ApiResponse<T>;
         if (isSuccessfulResponse(response)) {
           if (showSuccessMessage) showSuccessToast(response.message);
           if (invalidateQueryKey?.length) {
@@ -239,7 +257,7 @@ export const useAPI = () => {
           handleErrorMessage(response);
         }
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (showErrorMessage) handleErrorMessage(e);
       return { success: false, error: e };
     }
@@ -251,7 +269,7 @@ export const useAPI = () => {
     showSuccessMessage = true
   }: HandleDeleteProps) => {
     try {
-      const response = await deleteMutation.mutateAsync({ url }) as ApiResponse<T>;
+      const response = (await deleteMutation.mutateAsync({ url })) as ApiResponse<T>;
       if (isSuccessfulResponse(response)) {
         if (showSuccessMessage) showSuccessToast(response.message);
         if (invalidateQueryKey?.length) {
@@ -261,7 +279,7 @@ export const useAPI = () => {
       } else {
         handleErrorMessage(response);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       handleErrorMessage(e);
     }
   };

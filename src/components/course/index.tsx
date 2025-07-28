@@ -16,8 +16,8 @@ interface ValueItem {
     text?: string;
     background_color?: string;
     text_color?: string;
-    background?: any;
-    cta?: any;
+    background?: string;
+    cta?: string;
     name?: string;
     short_description?: string;
     profile_image?: string;
@@ -91,7 +91,13 @@ return (
                 return (
                     <CourseGroupJoin
                     key={keyPrefix}
-                    values={section.values}
+                    values={section.values.map((item) => ({
+                        ...item,
+                        background: typeof item.background === "string" ? { image: item.background } : item.background,
+                        cta: typeof item.cta === "string"
+                            ? { text: item.cta }
+                            : item.cta
+                    }))}
                     sectionKey={keyPrefix}
                     />
                 );

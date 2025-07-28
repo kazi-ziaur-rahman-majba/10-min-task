@@ -5,28 +5,17 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MdArrowDropDown, MdMenu, MdClose } from "react-icons/md";
 import { CiSearch } from "react-icons/ci";
-import { useAPI } from "@/hooks/useApi";
-import apiConfig from "@/config/api.json";
 import logo from "../../../../public/assets/images/10.svg";
 
 const NavBar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [activeDesktopMenu, setActiveDesktopMenu] = useState<string | null>(
-    null
-  );
   const [language, setLanguage] = useState<"bn" | "en">("bn");
-  const { fetchData } = useAPI();
-  const [response, setResponse] = useState<any>(null);
 
   const pathname = usePathname();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -40,45 +29,7 @@ const NavBar = () => {
     localStorage.setItem("lang", language);
   }, [language]);
 
-  const toggleSubMenu = (name: string) => {
-    setOpenSubMenu((prev) => (prev === name ? null : name));
-  };
-
-  const handleDesktopMenuEnter = (menuName: string) => {
-    if (hoverTimeout) clearTimeout(hoverTimeout);
-    const timeout = setTimeout(() => {
-      setActiveDesktopMenu(menuName);
-    }, 150);
-    setHoverTimeout(timeout);
-  };
-
-  const handleDesktopMenuLeave = () => {
-    if (hoverTimeout) clearTimeout(hoverTimeout);
-    const timeout = setTimeout(() => {
-      setActiveDesktopMenu(null);
-    }, 100);
-    setHoverTimeout(timeout);
-  };
-
-  const handleDesktopMenuStay = () => {
-    if (hoverTimeout) clearTimeout(hoverTimeout);
-  };
-
-  const handleMobileNavClick = () => setIsMobileMenuOpen(false);
-
-  const isActive = (href: string) =>
-    pathname === href ? "text-green-600" : "";
-
-  useEffect(() => {
-    const fetchHomePageData = async () => {
-      const response = await fetchData({
-        apiUrl: `${apiConfig.site.homePageUrl}`,
-      });
-      setResponse(response);
-      console.log("Home Page Data:", response);
-    };
-    fetchHomePageData();
-  }, []);
+  const isActive = (href: string) => (pathname === href ? "text-green-600" : "");
 
   return (
     <header
@@ -123,71 +74,29 @@ const NavBar = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center">
-            <ul className="flex items-center text-black border-none gap-1 text-sm font-medium">
+            <ul className="flex items-center text-black gap-1 text-sm font-medium">
               {[
                 {
-                  label: language === "bn" ? "Class 6-12" : "Class 6-12",
-                  menu: "class",
+                  label: "Courses",
                   items: [
-                    { text: "Class 6", link: "/class-6" },
-                    { text: "Class 7", link: "/class-7" },
-                    { text: "Class 8", link: "/class-8" },
+                    { link: "/courses/math", text: "Math" },
+                    { link: "/courses/english", text: "English" },
                   ],
                 },
                 {
-                  label: language === "bn" ? "Skills" : "Skills",
-                  menu: "skills",
+                  label: "Programs",
                   items: [
-                    { text: "Skill Development", link: "/skill-development" },
-                    {
-                      text: "Professional Courses",
-                      link: "/professional-courses",
-                    },
+                    { link: "/programs/school", text: "School Program" },
+                    { link: "/programs/college", text: "College Program" },
                   ],
                 },
-                {
-                  label: language === "bn" ? "Online Batch" : "Online Batch",
-                  menu: "batch",
-                  items: [
-                    { text: "HSC Batch", link: "/hsc-batch" },
-                    { text: "SSC Batch", link: "/ssc-batch" },
-                  ],
-                },
-                {
-                  label:
-                    language === "bn" ? "English Centre" : "English Centre",
-                  menu: "english",
-                  items: [
-                    { text: "Spoken English", link: "/spoken-english" },
-                    { text: "IELTS Preparation", link: "/ielts-preparation" },
-                  ],
-                },
-                {
-                  label: language === "bn" ? "More" : "More",
-                  menu: "more",
-                  items: [
-                    { text: "About Us", link: "/about" },
-                    { text: "Contact", link: "/contact" },
-                  ],
-                },
-              ].map(({ label, menu, items }) => (
-                <li
-                  key={menu}
-                  className="relative"
-                  onMouseEnter={() => handleDesktopMenuEnter(menu)}
-                  onMouseLeave={handleDesktopMenuLeave}
-                >
+              ].map(({ label, items }) => (
+                <li key={label} className="relative group">
                   <button className="flex items-center px-3 py-2 text-gray-700 hover:text-green-600 rounded-md hover:bg-gray-50">
                     {label} <MdArrowDropDown className="ml-1" />
                   </button>
                   <div
-                    className={`absolute top-full left-0 mt-1 w-48 bg-white shadow-lg rounded-lg border z-50 transition-all duration-200 ${
-                      activeDesktopMenu === menu
-                        ? "opacity-100 visible translate-y-0"
-                        : "opacity-0 invisible -translate-y-2"
-                    }`}
-                    onMouseEnter={handleDesktopMenuStay}
-                    onMouseLeave={handleDesktopMenuLeave}
+                    className={`absolute top-full left-0 mt-1 w-48 bg-white shadow-lg rounded-lg border z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200 translate-y-2`}
                   >
                     <ul className="py-2 text-sm">
                       {items.map((item) => (
@@ -224,9 +133,7 @@ const NavBar = () => {
               <button
                 onClick={() => setLanguage("bn")}
                 className={`px-2 py-1 rounded ${
-                  language === "bn"
-                    ? "bg-green-100 text-green-600"
-                    : "text-gray-600"
+                  language === "bn" ? "bg-green-100 text-green-600" : "text-gray-600"
                 }`}
               >
                 বাংলা
@@ -235,9 +142,7 @@ const NavBar = () => {
               <button
                 onClick={() => setLanguage("en")}
                 className={`px-2 py-1 rounded ${
-                  language === "en"
-                    ? "bg-green-100 text-green-600"
-                    : "text-gray-600"
+                  language === "en" ? "bg-green-100 text-green-600" : "text-gray-600"
                 }`}
               >
                 English
@@ -261,9 +166,7 @@ const NavBar = () => {
                 <CiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg" />
                 <input
                   type="text"
-                  placeholder={
-                    language === "bn" ? "সার্চ করুন..." : "Search..."
-                  }
+                  placeholder={language === "bn" ? "সার্চ করুন..." : "Search..."}
                   className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-green-500"
                 />
               </div>
@@ -274,9 +177,7 @@ const NavBar = () => {
               <button
                 onClick={() => setLanguage("bn")}
                 className={`px-3 py-1 rounded ${
-                  language === "bn"
-                    ? "bg-green-100 text-green-600"
-                    : "text-gray-600"
+                  language === "bn" ? "bg-green-100 text-green-600" : "text-gray-600"
                 }`}
               >
                 বাংলা
@@ -284,17 +185,12 @@ const NavBar = () => {
               <button
                 onClick={() => setLanguage("en")}
                 className={`px-3 py-1 rounded ${
-                  language === "en"
-                    ? "bg-green-100 text-green-600"
-                    : "text-gray-600"
+                  language === "en" ? "bg-green-100 text-green-600" : "text-gray-600"
                 }`}
               >
                 English
               </button>
             </div>
-
-            {/* Dynamic mobile menus (optional - can be reused from desktop config) */}
-            {/* Add your mobile menu sections here like you had before, or use the same config as desktop */}
           </div>
         )}
       </div>

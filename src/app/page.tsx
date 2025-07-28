@@ -8,6 +8,7 @@ import Course from "@/components/course/index";
 
 export default function Home() {
   const { fetchData } = useAPI();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [response, setResponse] = useState<any>(null);
 
   useEffect(() => {
@@ -19,7 +20,7 @@ export default function Home() {
       console.log("Home Page Data:", response);
     };
     fetchHomePageData();
-  }, []);
+  }, [fetchData]);
 
   if (!response) {
     return <div>Loading...</div>;

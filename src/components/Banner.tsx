@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -39,28 +39,17 @@ const Banner: React.FC<BannerProps> = ({
   const { fetchData } = useAPI();
   const [cleanHtml, setCleanHtml] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [language, setLanguage] = useState<"bn" | "en">("bn");
-  const [response, setResponse] = useState<any>(null);
 
-  // Handle scroll behavior
-  const [isScrolled, setIsScrolled] = useState(false);
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   // Fetch data on language change
   useEffect(() => {
     const fetchHomePageData = async () => {
-      const res = await fetchData({
-        apiUrl: `${apiConfig.site.homePageUrl}?lang=${language}`,
+      await fetchData({
+        apiUrl: `${apiConfig.site.homePageUrl}`,
       });
-      setResponse(res);
-      console.log("Home Page Data:", res);
     };
     fetchHomePageData();
-  }, [language]);
+  }, [fetchData]);
 
   // Update HTML description dynamically
   useEffect(() => {
@@ -72,10 +61,20 @@ const Banner: React.FC<BannerProps> = ({
     setCleanHtml(tempDiv.innerHTML);
   }, [description]);
 
-  // Handle media item changes
-  const getImageUrl = (item: MediaItem) => item.thumbnail_url || item.resource_value || "";
-  const goToPrevious = () => setCurrentIndex(prevIndex => prevIndex === 0 ? media.length - 1 : prevIndex - 1);
-  const goToNext = () => setCurrentIndex(prevIndex => prevIndex === media.length - 1 ? 0 : prevIndex + 1);
+  // Carousel logic
+  const getImageUrl = (item: MediaItem) =>
+    item.thumbnail_url || item.resource_value || "";
+
+  const goToPrevious = () =>
+    setCurrentIndex((prevIndex) =>
+      prevIndex === 0 ? media.length - 1 : prevIndex - 1
+    );
+
+  const goToNext = useCallback(() => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === media.length - 1 ? 0 : prevIndex + 1
+    );
+  }, [media.length]);
 
   // Automatic slide transition
   useEffect(() => {
@@ -83,7 +82,7 @@ const Banner: React.FC<BannerProps> = ({
       const interval = setInterval(goToNext, 5000);
       return () => clearInterval(interval);
     }
-  }, [currentIndex, media.length]);
+  }, [media.length, goToNext]);
 
   const handleCTAClick = () => {
     switch (cta_text.value) {
@@ -91,7 +90,6 @@ const Banner: React.FC<BannerProps> = ({
         router.push("/checkout");
         break;
       case "preview":
-        // Preview action here
         alert("Preview is clicked");
         break;
       case "login":
@@ -100,11 +98,6 @@ const Banner: React.FC<BannerProps> = ({
       default:
         alert(`Unknown action: ${cta_text.value}`);
     }
-  };
-
-  // Language selection handler
-  const handleLanguageChange = (lang: "bn" | "en") => {
-    setLanguage(lang);
   };
 
   return (
@@ -123,7 +116,6 @@ const Banner: React.FC<BannerProps> = ({
 
         {/* Right Side: Carousel */}
         <div className="md:w-[45%] w-full bg-white rounded-xl shadow-lg p-4 z-10 relative">
-          {/* Image */}
           <div className="relative h-64 md:h-[280px] rounded-md overflow-hidden">
             <Image
               src={getImageUrl(media[currentIndex])}
@@ -131,9 +123,8 @@ const Banner: React.FC<BannerProps> = ({
               height={280}
               width={600}
               className="object-cover w-full h-full"
-              priority={true}
+              priority
             />
-            {/* Arrows */}
             {media.length > 1 && (
               <>
                 <button
@@ -187,6 +178,7 @@ const Banner: React.FC<BannerProps> = ({
             </button>
           )}
 
+          {/* Checklist */}
           {checklist && checklist.length > 0 && (
             <div className="mt-4 gap-3 text-sm text-gray-800">
               {checklist.map((item, index) => (
