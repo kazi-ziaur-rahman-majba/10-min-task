@@ -1,5 +1,4 @@
 "use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -8,6 +7,7 @@ import { MdArrowDropDown, MdMenu, MdClose } from "react-icons/md";
 import { CiSearch } from "react-icons/ci";
 import { useAPI } from "@/hooks/useApi";
 import apiConfig from "@/config/api.json";
+import logo from "../../../../public/assets/images/10.svg";
 
 const NavBar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -90,7 +90,7 @@ const NavBar = () => {
         <div className="flex justify-between items-center py-3 px-4 md:px-6 lg:px-8 xl:px-10">
           <Link href="/" className="flex-shrink-0">
             <Image
-              src="/10mlslogo.png"
+              src={logo}
               alt="10 Minute School Logo"
               width={140}
               height={32}
@@ -123,7 +123,7 @@ const NavBar = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center">
-            <ul className="flex items-center gap-1 text-sm font-medium">
+            <ul className="flex items-center text-black border-none gap-1 text-sm font-medium">
               {[
                 {
                   label: language === "bn" ? "Class 6-12" : "Class 6-12",
