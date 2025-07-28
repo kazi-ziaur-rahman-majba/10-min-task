@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useAPI } from "@/hooks/useApi";
+import apiConfig from "@/config/api.json";
 
 interface MediaItem {
   thumbnail_url?: string;
@@ -34,10 +36,33 @@ const Banner: React.FC<BannerProps> = ({
   cta_text,
 }) => {
   const router = useRouter();
-
+  const { fetchData } = useAPI();
   const [cleanHtml, setCleanHtml] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [language, setLanguage] = useState<"bn" | "en">("bn");
+  const [response, setResponse] = useState<any>(null);
 
+  // Handle scroll behavior
+  const [isScrolled, setIsScrolled] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Fetch data on language change
+  useEffect(() => {
+    const fetchHomePageData = async () => {
+      const res = await fetchData({
+        apiUrl: `${apiConfig.site.homePageUrl}?lang=${language}`,
+      });
+      setResponse(res);
+      console.log("Home Page Data:", res);
+    };
+    fetchHomePageData();
+  }, [language]);
+
+  // Update HTML description dynamically
   useEffect(() => {
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = description;
@@ -47,22 +72,12 @@ const Banner: React.FC<BannerProps> = ({
     setCleanHtml(tempDiv.innerHTML);
   }, [description]);
 
-  const getImageUrl = (item: MediaItem) => {
-    return item.thumbnail_url || item.resource_value || "";
-  };
+  // Handle media item changes
+  const getImageUrl = (item: MediaItem) => item.thumbnail_url || item.resource_value || "";
+  const goToPrevious = () => setCurrentIndex(prevIndex => prevIndex === 0 ? media.length - 1 : prevIndex - 1);
+  const goToNext = () => setCurrentIndex(prevIndex => prevIndex === media.length - 1 ? 0 : prevIndex + 1);
 
-  const goToPrevious = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? media.length - 1 : prevIndex - 1
-    );
-  };
-
-  const goToNext = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === media.length - 1 ? 0 : prevIndex + 1
-    );
-  };
-
+  // Automatic slide transition
   useEffect(() => {
     if (media.length > 1) {
       const interval = setInterval(goToNext, 5000);
@@ -76,7 +91,7 @@ const Banner: React.FC<BannerProps> = ({
         router.push("/checkout");
         break;
       case "preview":
-        // এখানে preview modal বা অন্য কোনো action আসতে পারে
+        // Preview action here
         alert("Preview is clicked");
         break;
       case "login":
@@ -85,6 +100,11 @@ const Banner: React.FC<BannerProps> = ({
       default:
         alert(`Unknown action: ${cta_text.value}`);
     }
+  };
+
+  // Language selection handler
+  const handleLanguageChange = (lang: "bn" | "en") => {
+    setLanguage(lang);
   };
 
   return (
@@ -156,6 +176,7 @@ const Banner: React.FC<BannerProps> = ({
               </button>
             ))}
           </div>
+
           {/* CTA Button */}
           {cta_text?.name && (
             <button
