@@ -279,29 +279,3 @@ export const useAPI = () => {
     handleDeleteAPI
   };
 };
-export const useGetResponse = <T>({
-  queryKey,
-  url,
-  enabled = true,
-  refetchOnWindowFocus = false,
-  refetchOnMount = false,
-  refetchInterval,
-  showToast = true,
-  staleTime = 0
-}: GetResponseProps) => {
-  const { data, error, isLoading, isFetching } = useQuery<ApiResponse<T> | ErrorResponse, Error, ApiResponse<T>>({
-    queryKey,
-    queryFn: () => getData({ url, token: useClientToken() }),
-    refetchOnWindowFocus,
-    refetchOnMount,
-    staleTime,
-    refetchInterval,
-    enabled: enabled && !!useClientToken() // ✅ wait for token
-  });
-
-  if (error && showToast) {
-    handleErrorMessage(error);
-  }
-
-  return { data: data?.data, error, isLoading, isFetching };
-};
