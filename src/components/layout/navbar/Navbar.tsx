@@ -109,7 +109,7 @@ const NavBar = () => {
                     ? "কিসের কোর্স, কিংবা স্কুল প্রোগ্রাম সার্চ করুন..."
                     : "Search for courses or school programs..."
                 }
-                className="w-full pl-10 pr-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                className="w-full pl-10 pr-4 py-2 text-sm md:text-base border border-black rounded-lg focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
               />
             </div>
           </div>
